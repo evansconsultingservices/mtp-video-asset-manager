@@ -15,6 +15,7 @@ module.exports = {
           exposes: {
             "./App": "./src/App",
             "./VideoAssetManager": "./src/App",
+            "./menuConfig": "./src/menuConfig",
           },
           shared: {
             react: {
