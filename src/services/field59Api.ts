@@ -5,9 +5,23 @@ import axios from 'axios';
  * Handles video fetching and creation using Field59's API
  */
 
-// Base URL for API calls - use absolute URL to ensure calls go back to child app's proxy
-// even when loaded via Module Federation in parent app
+// Base URL for API calls
+// In development: use local dev server proxy (localhost:3004)
+// In production: use Vercel serverless function proxy
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3004';
+
+// Helper to build the correct API URL
+// In production, we need to use the Vercel serverless function as a proxy
+const buildApiUrl = (path: string): string => {
+  // If we're using localhost (development), use the path directly
+  if (API_BASE_URL.includes('localhost')) {
+    return `${API_BASE_URL}${path}`;
+  }
+
+  // In production, use the Vercel serverless function proxy
+  // The proxy function is at /api/field59-proxy and takes the Field59 path as a query param
+  return `${API_BASE_URL}/api/field59-proxy?path=${encodeURIComponent(path)}`;
+};
 
 export interface Field59Video {
   key: string;
@@ -105,7 +119,7 @@ export class Field59ApiService {
     try {
       console.log('Fetching videos from Field59 API...');
 
-      const response = await axios.get(`${API_BASE_URL}/v2/search?limit=${limit}`, {
+      const response = await axios.get(buildApiUrl(`/v2/search?limit=${limit}`), {
         responseType: 'text',
         headers: {
           'Authorization': getAuthHeader(credentials),
@@ -167,7 +181,7 @@ export class Field59ApiService {
       const params = new URLSearchParams();
       params.append('xml', xml);
 
-      const response = await axios.post(`${API_BASE_URL}/v2/video/create`, params, {
+      const response = await axios.post(buildApiUrl('/v2/video/create'), params, {
         headers: {
           'Authorization': getAuthHeader(credentials),
           'Accept': 'application/xml'
@@ -211,7 +225,7 @@ export class Field59ApiService {
     try {
       console.log('Deleting video from Field59:', videoKey);
 
-      await axios.delete(`${API_BASE_URL}/v2/video/${videoKey}`, {
+      await axios.delete(buildApiUrl(`/v2/video/${videoKey}`), {
         headers: {
           'Authorization': getAuthHeader(credentials),
           'Accept': 'application/xml'
@@ -247,7 +261,7 @@ export class Field59ApiService {
     try {
       console.log('Fetching video details from Field59:', videoKey);
 
-      const response = await axios.get(`${API_BASE_URL}/v2/video/${videoKey}`, {
+      const response = await axios.get(buildApiUrl(`/v2/video/${videoKey}`), {
         responseType: 'text',
         headers: {
           'Authorization': getAuthHeader(credentials),
