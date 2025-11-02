@@ -12,6 +12,7 @@ module.exports = {
         new ModuleFederationPlugin({
           name: "videoAssetManager",
           filename: "remoteEntry.js",
+          library: { type: "var", name: "videoAssetManager" },
           exposes: {
             "./App": "./src/App",
             "./VideoAssetManager": "./src/App",
